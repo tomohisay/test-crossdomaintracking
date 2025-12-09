@@ -33,6 +33,139 @@ body.site-b .cross-domain-link:hover {
   background: #1a5a8a !important;
 }
 
+/* Site C specific styles (Cross-Domain Disabled) */
+body.site-c header {
+  background: linear-gradient(90deg, #5a3a0f 0%, #7a5a1a 100%);
+}
+
+body.site-c .cross-domain-info {
+  background: rgba(255,107,107,0.1);
+  border-color: #ff6b6b;
+}
+
+body.site-c .cross-domain-info h3 {
+  color: #ff6b6b;
+}
+
+/* Warning banner for Site C */
+.warning-banner {
+  background: linear-gradient(90deg, #6a2a2a 0%, #8a3a3a 100%);
+  color: #fca5a5;
+  padding: 15px 30px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #ff6b6b;
+}
+
+/* No cross-domain link style */
+nav a.no-crossdomain-link {
+  background: #5a3a0f;
+  border: 1px solid #8a5a2a;
+}
+
+nav a.no-crossdomain-link:hover {
+  background: #7a5a2a;
+}
+
+nav a.no-crossdomain-link::after {
+  content: ' ⊘';
+  font-size: 12px;
+}
+
+/* Site C info box */
+.site-c-info {
+  background: rgba(255,107,107,0.1) !important;
+  border-color: #ff6b6b !important;
+}
+
+.site-c-info h3 {
+  color: #ff6b6b !important;
+}
+
+/* Comparison Box */
+.comparison-box {
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  border: 1px solid #3a3a5a;
+}
+
+.comparison-box h3 {
+  margin-top: 0;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.comparison-table th {
+  color: #888;
+  font-weight: normal;
+  font-size: 13px;
+}
+
+.comparison-table td.enabled {
+  color: #4ade80;
+}
+
+.comparison-table td.disabled {
+  color: #ff6b6b;
+}
+
+/* Explanation Box */
+.explanation-box {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px dashed #4a4a6a;
+}
+
+.explanation-box h3 {
+  margin-top: 0;
+  color: #fde047;
+}
+
+.explanation-box ol {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.explanation-box ol li {
+  padding: 8px 0;
+  color: #c0c0c0;
+  line-height: 1.6;
+}
+
+/* Company Info Table */
+.company-info {
+  margin: 20px 0;
+}
+
+.company-info table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.company-info td {
+  padding: 12px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.company-info td:first-child {
+  width: 120px;
+  color: #888;
+}
+
 header {
   padding: 20px 30px;
   border-bottom: 2px solid #4a4a6a;

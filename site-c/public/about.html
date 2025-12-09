@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site C - 会社概要 | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="site-c">
+  <header>
+    <h1>Site C (Domain C)</h1>
+    <p class="domain-info">localhost:3003 - Cross-Domain Tracking DISABLED</p>
+  </header>
+
+  <div class="warning-banner">
+    このサイトはクロスドメイントラッキングが無効です。他サイトからの遷移時にビジターIDは引き継がれません。
+  </div>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/about.html" class="active">会社概要</a>
+    <a href="http://localhost:3001/" class="no-crossdomain-link" data-target-domain="Site A">Site Aへ（パラメータなし）</a>
+    <a href="http://localhost:3002/" class="no-crossdomain-link" data-target-domain="Site B">Site Bへ（パラメータなし）</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>会社概要</h2>
+      <p>これはSite C内の別ページです。サイト内遷移のテストに使用できます。</p>
+
+      <div class="company-info">
+        <h3>会社情報（ダミー）</h3>
+        <table>
+          <tr><td>会社名</td><td>テスト株式会社</td></tr>
+          <tr><td>設立</td><td>2024年1月</td></tr>
+          <tr><td>所在地</td><td>東京都渋谷区</td></tr>
+          <tr><td>事業内容</td><td>クロスドメイントラッキングテスト</td></tr>
+        </table>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+
+      <div class="cross-domain-info site-c-info">
+        <h3>サイト内遷移の確認</h3>
+        <p>Site C 内での遷移では、セッションIDは維持されます。</p>
+        <ul>
+          <li>訪問者ID: <code id="visitor-id"></code></li>
+          <li>セッションID: <code id="session-id"></code></li>
+          <li>初回訪問サイト: <code id="first-touch-site"></code></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="debug-panel"></div>
+
+  <script>
+    window.adobeAnalyticsConfig = {
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+      reportSuiteId: 'your-report-suite-id',
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+      crossDomainEnabled: false,
+      linkInternalFilters: 'localhost:3003',
+      currentSite: 'Site C',
+      currentDomain: 'localhost:3003'
+    };
+  </script>
+
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    function updateTrackingInfo() {
+      if (window.trackingCore) {
+        document.getElementById('visitor-id').textContent = window.trackingCore.getVisitorId() || '(未設定)';
+        document.getElementById('session-id').textContent = window.trackingCore.getSessionId() || '(未設定)';
+        document.getElementById('first-touch-site').textContent = window.trackingCore.getFirstTouchSite() || '(未設定)';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href
+        });
+        updateTrackingInfo();
+      }
+    });
+  </script>
+</body>
+</html>

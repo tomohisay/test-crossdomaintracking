@@ -20,6 +20,12 @@ const servers = [
     script: path.join(__dirname, 'site-b', 'server.js'),
     port: 3002,
     color: '\x1b[35m' // Magenta
+  },
+  {
+    name: 'Site C',
+    script: path.join(__dirname, 'site-c', 'server.js'),
+    port: 3003,
+    color: '\x1b[33m' // Yellow
   }
 ];
 
@@ -54,8 +60,9 @@ servers.forEach(server => {
 
 console.log('Starting servers...\n');
 console.log('Access the test sites at:');
-console.log(`  ${servers[0].color}Site A:${reset} http://localhost:${servers[0].port}/`);
-console.log(`  ${servers[1].color}Site B:${reset} http://localhost:${servers[1].port}/`);
+console.log(`  ${servers[0].color}Site A:${reset} http://localhost:${servers[0].port}/ (Cross-Domain Enabled)`);
+console.log(`  ${servers[1].color}Site B:${reset} http://localhost:${servers[1].port}/ (Cross-Domain Enabled)`);
+console.log(`  ${servers[2].color}Site C:${reset} http://localhost:${servers[2].port}/ (Cross-Domain DISABLED)`);
 console.log('\nPress Ctrl+C to stop all servers.\n');
 
 // Handle graceful shutdown

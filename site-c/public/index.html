@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site C - Domain C (No Cross-Domain) | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="site-c">
+  <header>
+    <h1>Site C (Domain C)</h1>
+    <p class="domain-info">localhost:3003 - Cross-Domain Tracking DISABLED</p>
+  </header>
+
+  <div class="warning-banner">
+    このサイトはクロスドメイントラッキングが無効です。他サイトからの遷移時にビジターIDは引き継がれません。
+  </div>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/about.html">会社概要</a>
+    <!-- Site A, B へのリンク（クロスドメインパラメータなし） -->
+    <a href="http://localhost:3001/" class="no-crossdomain-link" data-target-domain="Site A">Site Aへ（パラメータなし）</a>
+    <a href="http://localhost:3002/" class="no-crossdomain-link" data-target-domain="Site B">Site Bへ（パラメータなし）</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>Site C - クロスドメイントラッキング無効サイト</h2>
+      <p>このサイトはクロスドメイントラッキングが<strong>無効</strong>に設定されています。</p>
+
+      <div class="comparison-box">
+        <h3>Site A/B との違い</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>機能</th>
+              <th>Site A/B</th>
+              <th>Site C</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>クロスドメインパラメータ付与</td>
+              <td class="enabled">有効</td>
+              <td class="disabled">無効</td>
+            </tr>
+            <tr>
+              <td>ビジターID引き継ぎ</td>
+              <td class="enabled">あり</td>
+              <td class="disabled">なし</td>
+            </tr>
+            <tr>
+              <td>遷移元との紐付け</td>
+              <td class="enabled">可能</td>
+              <td class="disabled">不可</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="action-buttons">
+        <button onclick="simulatePageView()">ページビュー送信</button>
+        <button onclick="simulateEvent('click', 'button')">クリックイベント送信</button>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+
+      <div class="cross-domain-info site-c-info">
+        <h3>トラッキング状態（クロスドメイン無効）</h3>
+        <p>Site A/B から遷移してきた場合でも、URLパラメータは受け取りません。新しいビジターIDが生成されます。</p>
+        <ul>
+          <li>受信したパラメータ: <code id="received-params"></code></li>
+          <li>遷移元ドメイン: <code id="source-domain"></code></li>
+          <li>クロスドメインID受信: <code id="crossdomain-received">なし（無効化されています）</code></li>
+        </ul>
+      </div>
+
+      <div class="explanation-box">
+        <h3>なぜビジターIDが引き継がれないのか？</h3>
+        <ol>
+          <li>Site C への遷移リンクに <code>adobe_mc</code> パラメータが付与されていない</li>
+          <li>Site C の設定で <code>crossDomainEnabled: false</code> になっている</li>
+          <li>そのため、Site C では新しいビジターIDが生成される</li>
+          <li>結果として、Site A/B での行動と Site C での行動は別々の訪問者として記録される</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <div id="debug-panel"></div>
+
+  <script>
+    // Site C の設定: クロスドメイントラッキング無効
+    window.adobeAnalyticsConfig = {
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+      reportSuiteId: 'your-report-suite-id',
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+
+      // クロスドメイントラッキング無効
+      crossDomainEnabled: false,
+
+      linkInternalFilters: 'localhost:3003',
+      currentSite: 'Site C',
+      currentDomain: 'localhost:3003'
+    };
+  </script>
+
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // URLパラメータを解析（受け取っても使用しない）
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = [];
+    urlParams.forEach((value, key) => {
+      params.push(`${key}=${value}`);
+    });
+    document.getElementById('received-params').textContent = params.length > 0
+      ? params.join(', ') + ' (無視されます)'
+      : '(なし)';
+
+    // 遷移元ドメインを判定
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        document.getElementById('source-domain').textContent = referrerUrl.host;
+      } catch (e) {
+        document.getElementById('source-domain').textContent = '(解析不可)';
+      }
+    } else {
+      document.getElementById('source-domain').textContent = '(直接流入)';
+    }
+
+    function simulatePageView() {
+      if (window.trackingCore) {
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href
+        });
+      }
+    }
+
+    function simulateEvent(eventType, eventName) {
+      if (window.trackingCore) {
+        window.trackingCore.trackEvent({
+          eventType: eventType,
+          eventName: eventName,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        simulatePageView();
+      }
+    });
+  </script>
+</body>
+</html>
