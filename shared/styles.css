@@ -534,6 +534,30 @@ button[type="submit"]:hover {
   margin-top: 15px;
 }
 
+/* Adobe Tags Status Box */
+.tags-status {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid #3a3a5a;
+}
+
+.tags-status h3 {
+  margin-top: 0;
+  color: #00d4ff;
+}
+
+.tags-status p {
+  margin: 8px 0;
+}
+
+.tags-hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 15px !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   nav {

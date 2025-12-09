@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site B - ランディングページ | Cross-Domain Tracking Test</title>
+
+  <!-- Adobe Tags Configuration - Load first -->
+  <script src="/config.js"></script>
+  <script>
+    if (window.adobeConfig && window.adobeConfig.inject) {
+      window.adobeConfig.inject();
+    }
+  </script>
+
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="site-b">
@@ -61,19 +70,6 @@
   </main>
 
   <div id="debug-panel"></div>
-
-  <script>
-    window.adobeAnalyticsConfig = {
-      trackingServer: 'your-tracking-server.sc.omtrdc.net',
-      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
-      reportSuiteId: 'your-report-suite-id',
-      marketingCloudOrgId: 'your-org-id@AdobeOrg',
-      crossDomainEnabled: true,
-      linkInternalFilters: 'localhost:3002',
-      currentSite: 'Site B',
-      currentDomain: 'localhost:3002'
-    };
-  </script>
 
   <script src="/tracking-core.js"></script>
   <script src="/debug-panel.js"></script>

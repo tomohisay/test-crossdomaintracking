@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site A - Domain A | Cross-Domain Tracking Test</title>
+
+  <!-- Adobe Tags Configuration - Load first -->
+  <script src="/config.js"></script>
+  <script>
+    // Adobe Tags (Launch) を挿入
+    // config.js の adobeTagsUrl に自身のタグURLを設定してください
+    if (window.adobeConfig && window.adobeConfig.inject) {
+      window.adobeConfig.inject();
+    }
+  </script>
+
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -26,6 +37,12 @@
       <h2>Cross-Domain Tracking テスト環境</h2>
       <p>このサイトはAdobe Analyticsのクロスドメイントラッキングをテストするためのダミーサイトです。</p>
 
+      <div class="tags-status">
+        <h3>Adobe Tags 設定状況</h3>
+        <p>ステータス: <code id="tags-status">確認中...</code></p>
+        <p class="tags-hint">※ shared/config.js の <code>adobeTagsUrl</code> に自身のAdobe TagsのURLを設定してください</p>
+      </div>
+
       <div class="action-buttons">
         <button onclick="simulatePageView()">ページビュー送信</button>
         <button onclick="simulateEvent('click', 'button')">クリックイベント送信</button>
@@ -44,33 +61,6 @@
   <!-- Debug Panel -->
   <div id="debug-panel"></div>
 
-  <!-- Adobe Analytics Placeholder -->
-  <script>
-    // ============================================
-    // Adobe Analytics 実装プレースホルダー
-    // 実際のAppMeasurement.jsやalloy.jsはここに挿入
-    // ============================================
-    window.adobeAnalyticsConfig = {
-      // トラッキングサーバー設定
-      trackingServer: 'your-tracking-server.sc.omtrdc.net',
-      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
-
-      // レポートスイートID
-      reportSuiteId: 'your-report-suite-id',
-
-      // ビジター ID サービス
-      marketingCloudOrgId: 'your-org-id@AdobeOrg',
-
-      // クロスドメイン設定
-      crossDomainEnabled: true,
-      linkInternalFilters: 'localhost:3001',
-
-      // 現在のサイト識別子
-      currentSite: 'Site A',
-      currentDomain: 'localhost:3001'
-    };
-  </script>
-
   <!-- Shared Tracking Scripts -->
   <script src="/tracking-core.js"></script>
   <script src="/debug-panel.js"></script>
@@ -80,6 +70,26 @@
     document.getElementById('current-url').textContent = window.location.href;
     document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
     document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // Adobe Tags ステータスを表示
+    function updateTagsStatus() {
+      const statusEl = document.getElementById('tags-status');
+      if (window.adobeConfig && window.adobeConfig.isConfigured()) {
+        if (window._adobeTagsLoaded) {
+          statusEl.textContent = '読み込み完了';
+          statusEl.style.color = '#4ade80';
+        } else if (window._adobeTagsLoadError) {
+          statusEl.textContent = '読み込みエラー';
+          statusEl.style.color = '#ff6b6b';
+        } else {
+          statusEl.textContent = '読み込み中...';
+          statusEl.style.color = '#fde047';
+        }
+      } else {
+        statusEl.textContent = '未設定（デバッグモード）';
+        statusEl.style.color = '#888';
+      }
+    }
 
     // ページビューシミュレーション
     function simulatePageView() {
@@ -104,6 +114,10 @@
 
     // 初期化時にページビューを自動送信
     window.addEventListener('DOMContentLoaded', () => {
+      updateTagsStatus();
+      // Adobe Tagsの読み込みを待つため少し遅延
+      setTimeout(updateTagsStatus, 1000);
+
       if (window.trackingCore) {
         window.trackingCore.init();
         simulatePageView();

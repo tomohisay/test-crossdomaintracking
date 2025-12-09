@@ -2,7 +2,8 @@
  * Cross-Domain Tracking Core
  *
  * このファイルはAdobe Analyticsのクロスドメイントラッキングをシミュレートするためのコアライブラリです。
- * 実際のAdobe Analytics実装（AppMeasurement.js または alloy.js）はこのファイルの該当箇所に挿入してください。
+ * 実際のAdobe Analytics実装はAdobe Tags (Launch) 経由で読み込まれます。
+ * config.js で Adobe Tags の URL を設定してください。
  *
  * 主な機能:
  * - ビジターIDの生成と管理
@@ -10,6 +11,7 @@
  * - クロスドメインリンクへのパラメータ付与
  * - ページビュー/イベントのトラッキング（デモ用）
  * - デバッグパネルへのログ出力
+ * - Adobe Tags との連携
  */
 
 (function(window) {
@@ -35,11 +37,38 @@
 
   class TrackingCore {
     constructor() {
-      this.config = window.adobeAnalyticsConfig || {};
+      // config.js から設定を取得、なければ旧形式の設定を参照
+      this.config = this.loadConfig();
       this.visitorId = null;
       this.sessionId = null;
       this.initialized = false;
       this.trackingLog = [];
+      this.adobeTagsLoaded = false;
+    }
+
+    /**
+     * 設定を読み込み
+     */
+    loadConfig() {
+      // 新形式: config.js からサイト設定を取得
+      if (window.adobeConfig && window.adobeConfig.getCurrentSiteConfig) {
+        const siteConfig = window.adobeConfig.getCurrentSiteConfig();
+        if (siteConfig) {
+          return {
+            currentSite: siteConfig.siteName,
+            currentDomain: siteConfig.domain,
+            crossDomainEnabled: siteConfig.crossDomainEnabled,
+            linkInternalFilters: siteConfig.linkInternalFilters,
+            marketingCloudOrgId: siteConfig.marketingCloudOrgId,
+            trackingServer: siteConfig.trackingServer,
+            trackingServerSecure: siteConfig.trackingServerSecure,
+            crossDomainDomains: siteConfig.crossDomainDomains
+          };
+        }
+      }
+
+      // フォールバック: 旧形式の設定
+      return window.adobeAnalyticsConfig || {};
     }
 
     /**
@@ -48,7 +77,14 @@
     init() {
       if (this.initialized) return;
 
-      this.log('system', 'Tracking Core initializing...');
+      // Adobe Tags の読み込み状態を確認
+      this.adobeTagsLoaded = window._adobeTagsLoaded || false;
+      const adobeTagsConfigured = window.adobeConfig && window.adobeConfig.isConfigured && window.adobeConfig.isConfigured();
+
+      this.log('system', 'Tracking Core initializing...', {
+        adobeTagsConfigured: adobeTagsConfigured,
+        adobeTagsLoaded: this.adobeTagsLoaded
+      });
 
       // URLパラメータからクロスドメイン情報を取得
       this.processCrossDomainParams();
