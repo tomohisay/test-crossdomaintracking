@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site B - ランディングページ | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="site-b">
+  <header>
+    <h1>Site B (Domain B)</h1>
+    <p class="domain-info">localhost:3002</p>
+  </header>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/landing.html" class="active">ランディング</a>
+    <a href="/checkout.html">チェックアウト</a>
+    <a href="http://localhost:3001/" class="cross-domain-link" data-target-domain="Site A">Site Aへ移動</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>ランディングページ</h2>
+      <p>クロスドメイン遷移の主要なランディングページです。広告やメールからの流入をシミュレートします。</p>
+
+      <div class="landing-hero">
+        <h3>特別オファー</h3>
+        <p>Site Aからお越しの方限定のキャンペーンです。</p>
+        <button onclick="trackCampaignInteraction('hero_cta')">今すぐ申し込む</button>
+      </div>
+
+      <div class="utm-info">
+        <h3>UTMパラメータ解析</h3>
+        <table>
+          <tr><td>utm_source:</td><td><code id="utm-source">-</code></td></tr>
+          <tr><td>utm_medium:</td><td><code id="utm-medium">-</code></td></tr>
+          <tr><td>utm_campaign:</td><td><code id="utm-campaign">-</code></td></tr>
+          <tr><td>utm_content:</td><td><code id="utm-content">-</code></td></tr>
+          <tr><td>utm_term:</td><td><code id="utm-term">-</code></td></tr>
+        </table>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+
+      <div class="cross-domain-info">
+        <h3>クロスドメイン遷移情報</h3>
+        <ul>
+          <li>受信したパラメータ: <code id="received-params"></code></li>
+          <li>遷移元ドメイン: <code id="source-domain"></code></li>
+          <li>MCID (Marketing Cloud ID): <code id="mcid"></code></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="debug-panel"></div>
+
+  <script>
+    window.adobeAnalyticsConfig = {
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+      reportSuiteId: 'your-report-suite-id',
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+      crossDomainEnabled: true,
+      linkInternalFilters: 'localhost:3002',
+      currentSite: 'Site B',
+      currentDomain: 'localhost:3002'
+    };
+  </script>
+
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // URLパラメータを解析
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // UTMパラメータを表示
+    ['source', 'medium', 'campaign', 'content', 'term'].forEach(param => {
+      const value = urlParams.get(`utm_${param}`);
+      document.getElementById(`utm-${param}`).textContent = value || '-';
+    });
+
+    // 受信パラメータ一覧
+    const params = [];
+    urlParams.forEach((value, key) => {
+      params.push(`${key}=${value}`);
+    });
+    document.getElementById('received-params').textContent = params.length > 0 ? params.join(', ') : '(なし)';
+
+    // 遷移元ドメイン
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        document.getElementById('source-domain').textContent = referrerUrl.host;
+      } catch (e) {
+        document.getElementById('source-domain').textContent = '(解析不可)';
+      }
+    } else {
+      document.getElementById('source-domain').textContent = '(直接流入)';
+    }
+
+    // MCID を表示（実際のAdobe実装では Visitor.getInstance().getMarketingCloudVisitorID() を使用）
+    const mcid = urlParams.get('MCID') || urlParams.get('adobe_mc') || '(受信なし - 実装後に表示)';
+    document.getElementById('mcid').textContent = mcid;
+
+    function trackCampaignInteraction(ctaName) {
+      if (window.trackingCore) {
+        window.trackingCore.trackEvent({
+          eventType: 'campaignInteraction',
+          eventName: 'CTA Click',
+          ctaName: ctaName,
+          timestamp: new Date().toISOString()
+        });
+      }
+      alert('申し込みボタンがクリックされました（デモ）');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href,
+          landingPage: true
+        });
+      }
+    });
+  </script>
+</body>
+</html>

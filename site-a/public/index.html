@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site A - Domain A | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Site A (Domain A)</h1>
+    <p class="domain-info">localhost:3001</p>
+  </header>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/page2.html">ページ2</a>
+    <a href="/page3.html">ページ3</a>
+    <a href="http://localhost:3002/" class="cross-domain-link" data-target-domain="Site B">Site Bへ移動</a>
+    <a href="http://localhost:3002/landing.html" class="cross-domain-link" data-target-domain="Site B">Site B ランディング</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>Cross-Domain Tracking テスト環境</h2>
+      <p>このサイトはAdobe Analyticsのクロスドメイントラッキングをテストするためのダミーサイトです。</p>
+
+      <div class="action-buttons">
+        <button onclick="simulatePageView()">ページビュー送信</button>
+        <button onclick="simulateEvent('click', 'button')">クリックイベント送信</button>
+        <button onclick="simulateEvent('conversion', 'signup')">コンバージョン送信</button>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Debug Panel -->
+  <div id="debug-panel"></div>
+
+  <!-- Adobe Analytics Placeholder -->
+  <script>
+    // ============================================
+    // Adobe Analytics 実装プレースホルダー
+    // 実際のAppMeasurement.jsやalloy.jsはここに挿入
+    // ============================================
+    window.adobeAnalyticsConfig = {
+      // トラッキングサーバー設定
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+
+      // レポートスイートID
+      reportSuiteId: 'your-report-suite-id',
+
+      // ビジター ID サービス
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+
+      // クロスドメイン設定
+      crossDomainEnabled: true,
+      linkInternalFilters: 'localhost:3001',
+
+      // 現在のサイト識別子
+      currentSite: 'Site A',
+      currentDomain: 'localhost:3001'
+    };
+  </script>
+
+  <!-- Shared Tracking Scripts -->
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    // ページ情報を表示
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // ページビューシミュレーション
+    function simulatePageView() {
+      if (window.trackingCore) {
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href
+        });
+      }
+    }
+
+    // イベントシミュレーション
+    function simulateEvent(eventType, eventName) {
+      if (window.trackingCore) {
+        window.trackingCore.trackEvent({
+          eventType: eventType,
+          eventName: eventName,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    // 初期化時にページビューを自動送信
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        simulatePageView();
+      }
+    });
+  </script>
+</body>
+</html>

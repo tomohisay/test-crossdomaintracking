@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site B - Domain B | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="site-b">
+  <header>
+    <h1>Site B (Domain B)</h1>
+    <p class="domain-info">localhost:3002</p>
+  </header>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/landing.html">ランディング</a>
+    <a href="/checkout.html">チェックアウト</a>
+    <a href="http://localhost:3001/" class="cross-domain-link" data-target-domain="Site A">Site Aへ移動</a>
+    <a href="http://localhost:3001/page2.html" class="cross-domain-link" data-target-domain="Site A">Site A 商品一覧</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>Site B - メインサイト</h2>
+      <p>これは別ドメイン（Site B）のダミーサイトです。Site Aからの遷移でクロスドメイントラッキングをテストできます。</p>
+
+      <div class="action-buttons">
+        <button onclick="simulatePageView()">ページビュー送信</button>
+        <button onclick="simulateEvent('click', 'button')">クリックイベント送信</button>
+        <button onclick="simulateEvent('purchase', 'complete')">購入完了送信</button>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+
+      <div class="cross-domain-info">
+        <h3>クロスドメイン遷移情報</h3>
+        <p>Site Aからの遷移の場合、URLパラメータやCookieを通じてビジターIDが引き継がれます。</p>
+        <ul>
+          <li>受信したパラメータ: <code id="received-params"></code></li>
+          <li>遷移元ドメイン: <code id="source-domain"></code></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="debug-panel"></div>
+
+  <script>
+    window.adobeAnalyticsConfig = {
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+      reportSuiteId: 'your-report-suite-id',
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+      crossDomainEnabled: true,
+      linkInternalFilters: 'localhost:3002',
+      currentSite: 'Site B',
+      currentDomain: 'localhost:3002'
+    };
+  </script>
+
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // URLパラメータを解析
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = [];
+    urlParams.forEach((value, key) => {
+      params.push(`${key}=${value}`);
+    });
+    document.getElementById('received-params').textContent = params.length > 0 ? params.join(', ') : '(なし)';
+
+    // 遷移元ドメインを判定
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        document.getElementById('source-domain').textContent = referrerUrl.host;
+      } catch (e) {
+        document.getElementById('source-domain').textContent = '(解析不可)';
+      }
+    } else {
+      document.getElementById('source-domain').textContent = '(直接流入)';
+    }
+
+    function simulatePageView() {
+      if (window.trackingCore) {
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href
+        });
+      }
+    }
+
+    function simulateEvent(eventType, eventName) {
+      if (window.trackingCore) {
+        window.trackingCore.trackEvent({
+          eventType: eventType,
+          eventName: eventName,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        simulatePageView();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "adobe-analytics-crossdomain-test",
+  "version": "1.0.0",
+  "description": "Adobe Analytics cross-domain tracking test environment with multiple local servers",
+  "scripts": {
+    "start": "node start.js",
+    "site-a": "node site-a/server.js",
+    "site-b": "node site-b/server.js",
+    "dev": "concurrently \"npm run site-a\" \"npm run site-b\""
+  },
+  "keywords": [
+    "adobe-analytics",
+    "cross-domain-tracking",
+    "testing",
+    "analytics"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site B - チェックアウト | Cross-Domain Tracking Test</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="site-b">
+  <header>
+    <h1>Site B (Domain B)</h1>
+    <p class="domain-info">localhost:3002</p>
+  </header>
+
+  <nav>
+    <a href="/">ホーム</a>
+    <a href="/landing.html">ランディング</a>
+    <a href="/checkout.html" class="active">チェックアウト</a>
+    <a href="http://localhost:3001/" class="cross-domain-link" data-target-domain="Site A">Site Aへ移動</a>
+  </nav>
+
+  <main>
+    <section class="content">
+      <h2>チェックアウトページ</h2>
+      <p>コンバージョン（購入完了）のトラッキングテスト用ページです。</p>
+
+      <div class="checkout-steps">
+        <div class="step completed" data-step="1">
+          <span class="step-number">1</span>
+          <span class="step-label">カート確認</span>
+        </div>
+        <div class="step active" data-step="2">
+          <span class="step-number">2</span>
+          <span class="step-label">お届け先</span>
+        </div>
+        <div class="step" data-step="3">
+          <span class="step-number">3</span>
+          <span class="step-label">お支払い</span>
+        </div>
+        <div class="step" data-step="4">
+          <span class="step-number">4</span>
+          <span class="step-label">完了</span>
+        </div>
+      </div>
+
+      <div class="checkout-form">
+        <h3>お届け先情報</h3>
+        <form id="checkout-form" onsubmit="handleCheckout(event)">
+          <div class="form-group">
+            <label for="fullname">お名前</label>
+            <input type="text" id="fullname" name="fullname" required>
+          </div>
+          <div class="form-group">
+            <label for="address">住所</label>
+            <input type="text" id="address" name="address" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">電話番号</label>
+            <input type="tel" id="phone" name="phone" required>
+          </div>
+          <div class="order-summary">
+            <h4>注文内容</h4>
+            <p>商品A x 1: ¥1,000</p>
+            <p>商品B x 2: ¥4,000</p>
+            <p class="total">合計: ¥5,000</p>
+          </div>
+          <button type="submit">購入を完了する</button>
+        </form>
+      </div>
+
+      <h3>現在のページ情報</h3>
+      <ul>
+        <li>URL: <code id="current-url"></code></li>
+        <li>Referrer: <code id="current-referrer"></code></li>
+        <li>Timestamp: <code id="current-timestamp"></code></li>
+      </ul>
+
+      <div class="cross-domain-info">
+        <h3>クロスドメイントラッキング状態</h3>
+        <p>Site Aで閲覧した商品がSite Bで購入された場合、同一訪問者として紐付けられます。</p>
+        <ul>
+          <li>訪問者ID: <code id="visitor-id"></code></li>
+          <li>セッションID: <code id="session-id"></code></li>
+          <li>初回訪問サイト: <code id="first-touch-site"></code></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="debug-panel"></div>
+
+  <script>
+    window.adobeAnalyticsConfig = {
+      trackingServer: 'your-tracking-server.sc.omtrdc.net',
+      trackingServerSecure: 'your-tracking-server.sc.omtrdc.net',
+      reportSuiteId: 'your-report-suite-id',
+      marketingCloudOrgId: 'your-org-id@AdobeOrg',
+      crossDomainEnabled: true,
+      linkInternalFilters: 'localhost:3002',
+      currentSite: 'Site B',
+      currentDomain: 'localhost:3002'
+    };
+  </script>
+
+  <script src="/tracking-core.js"></script>
+  <script src="/debug-panel.js"></script>
+
+  <script>
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('current-referrer').textContent = document.referrer || '(なし)';
+    document.getElementById('current-timestamp').textContent = new Date().toISOString();
+
+    // トラッキング情報を表示
+    function updateTrackingInfo() {
+      if (window.trackingCore) {
+        const visitorId = window.trackingCore.getVisitorId();
+        const sessionId = window.trackingCore.getSessionId();
+        const firstTouchSite = window.trackingCore.getFirstTouchSite();
+
+        document.getElementById('visitor-id').textContent = visitorId || '(未設定)';
+        document.getElementById('session-id').textContent = sessionId || '(未設定)';
+        document.getElementById('first-touch-site').textContent = firstTouchSite || '(未設定)';
+      }
+    }
+
+    function handleCheckout(event) {
+      event.preventDefault();
+
+      if (window.trackingCore) {
+        // チェックアウトステップのトラッキング
+        window.trackingCore.trackEvent({
+          eventType: 'checkout',
+          eventName: 'Checkout Step Complete',
+          step: 2,
+          timestamp: new Date().toISOString()
+        });
+
+        // 購入完了のトラッキング
+        window.trackingCore.trackEvent({
+          eventType: 'purchase',
+          eventName: 'Purchase Complete',
+          orderId: 'ORDER-' + Date.now(),
+          orderTotal: 5000,
+          products: [
+            { id: 'PROD001', name: '商品A', price: 1000, quantity: 1 },
+            { id: 'PROD002', name: '商品B', price: 2000, quantity: 2 }
+          ],
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      alert('購入が完了しました（デモ）\n\nクロスドメイントラッキングにより、Site Aでの閲覧履歴と紐付けられます。');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.trackingCore) {
+        window.trackingCore.init();
+        window.trackingCore.trackPageView({
+          pageName: document.title,
+          pageUrl: window.location.href,
+          pageType: 'checkout'
+        });
+        updateTrackingInfo();
+      }
+    });
+  </script>
+</body>
+</html>
