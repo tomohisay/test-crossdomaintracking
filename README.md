@@ -4,11 +4,13 @@ Adobe Analyticsのクロスドメイントラッキングをローカル環境�
 
 ## 概要
 
-このプロジェクトは、異なるポート（＝擬似的な異なるドメイン）で動作する3つのサイトを提供し、クロスドメイントラッキングの動作を確認・テストできます。
+このプロジェクトは、異なるホスト名で動作する3つのサイトを提供し、クロスドメイントラッキングの動作を確認・テストできます。
 
-- **Site A** (localhost:3001): 商品閲覧サイト - クロスドメイン有効
-- **Site B** (localhost:3002): 購入・コンバージョンサイト - クロスドメイン有効
-- **Site C** (localhost:3003): 独立サイト - **クロスドメイン無効**
+- **Site A** (site-a.local:3001): 商品閲覧サイト - クロスドメイン有効
+- **Site B** (site-b.local:3002): 購入・コンバージョンサイト - クロスドメイン有効
+- **Site C** (site-c.local:3003): 独立サイト - **クロスドメイン無効**
+
+> **重要**: 真のクロスドメイン環境を再現するため、異なるホスト名（`site-a.local`, `site-b.local`, `site-c.local`）を使用しています。ポート番号の違いだけでは、ブラウザのCookie/localStorageが共有されてしまい、正確なテストができません。
 
 ## 機能
 
@@ -27,7 +29,50 @@ Adobe Analyticsのクロスドメイントラッキングをローカル環境�
 - Node.js v14以上
 - （オプション）Adobe Tags プロパティ
 
-### インストール
+### 1. hostsファイルの設定（必須）
+
+真のクロスドメイン環境を再現するため、`/etc/hosts` ファイルを編集して異なるホスト名を設定します。
+
+#### macOS / Linux
+
+```bash
+sudo nano /etc/hosts
+```
+
+以下の行を追加:
+
+```
+127.0.0.1 site-a.local
+127.0.0.1 site-b.local
+127.0.0.1 site-c.local
+```
+
+#### Windows
+
+管理者権限でメモ帳を開き、以下のファイルを編集:
+
+```
+C:\Windows\System32\drivers\etc\hosts
+```
+
+以下の行を追加:
+
+```
+127.0.0.1 site-a.local
+127.0.0.1 site-b.local
+127.0.0.1 site-c.local
+```
+
+#### なぜhosts設定が必要なのか？
+
+| 方式 | Cookie/localStorage | クロスドメイン再現 |
+|------|---------------------|-------------------|
+| `localhost:3001` と `localhost:3002` | 共有される | ❌ 不可 |
+| `site-a.local` と `site-b.local` | 分離される | ✅ 可能 |
+
+ポート番号が異なるだけでは、ブラウザは同じドメイン（`localhost`）とみなし、Cookie や localStorage を共有してしまいます。異なるホスト名を使用することで、実際のクロスドメイン環境と同じ挙動を再現できます。
+
+### 2. インストール
 
 ```bash
 # リポジトリをクローン
@@ -65,13 +110,15 @@ const config = {
 
 **Adobe Tags URLが未設定の場合**は、デバッグモードで動作し、デバッグパネルでトラッキング状況を確認できます。
 
-### サーバーの起動
+### 3. サーバーの起動
 
 #### 方法1: Node.jsスクリプト（推奨）
 
 ```bash
 node start.js
 ```
+
+起動時にhosts設定の確認案内が表示されます。
 
 #### 方法2: シェルスクリプト
 
@@ -101,12 +148,13 @@ node site-c/server.js
 
 ## 使い方
 
-1. サーバーを起動
-2. ブラウザで http://localhost:3001/ （Site A）にアクセス
-3. 画面右下のデバッグパネルでトラッキング状況を確認
-4. ナビゲーションの「Site Bへ移動」をクリックしてクロスドメイン遷移
-5. Site Bでビジターがつながっているか確認
-6. 「Site Cへ（パラメータなし）」をクリックしてクロスドメイン無効の遷移をテスト
+1. hostsファイルを設定（上記参照）
+2. サーバーを起動
+3. ブラウザで http://site-a.local:3001/ （Site A）にアクセス
+4. 画面右下のデバッグパネルでトラッキング状況を確認
+5. ナビゲーションの「Site Bへ移動」をクリックしてクロスドメイン遷移
+6. Site Bでビジターがつながっているか確認
+7. 「Site Cへ（パラメータなし）」をクリックしてクロスドメイン無効の遷移をテスト
 
 ## Adobe Tags (Launch) 連携
 
@@ -161,7 +209,7 @@ Adobe Tags (Launch) でクロスドメイントラッキングを設定する場
 ### クロスドメイン有効時（Site A ↔ Site B）
 
 ```
-Site A (localhost:3001)              Site B (localhost:3002)
+Site A (site-a.local:3001)           Site B (site-b.local:3002)
 ┌─────────────────────┐              ┌─────────────────────┐
 │  ビジターID生成      │              │  パラメータ受信      │
 │  VID-xxx-yyy        │──────────────▶│  MCID=VID-xxx-yyy   │
@@ -174,7 +222,7 @@ Site A (localhost:3001)              Site B (localhost:3002)
 ### クロスドメイン無効時（→ Site C）
 
 ```
-Site A/B                              Site C (localhost:3003)
+Site A/B                              Site C (site-c.local:3003)
 ┌─────────────────────┐              ┌─────────────────────┐
 │  ビジターID          │              │  新規ビジターID生成  │
 │  VID-xxx-yyy        │──────────────▶│  VID-aaa-bbb        │
@@ -206,21 +254,21 @@ Site Cへのリンクにはこれらのパラメータは付与されません�
 
 ```
 .
-├── site-a/                 # Site A (localhost:3001) - Cross-Domain Enabled
+├── site-a/                 # Site A (site-a.local:3001) - Cross-Domain Enabled
 │   ├── server.js           # HTTPサーバー
 │   └── public/
 │       ├── index.html      # トップページ
 │       ├── page2.html      # 商品一覧
 │       └── page3.html      # お問い合わせ
 │
-├── site-b/                 # Site B (localhost:3002) - Cross-Domain Enabled
+├── site-b/                 # Site B (site-b.local:3002) - Cross-Domain Enabled
 │   ├── server.js           # HTTPサーバー
 │   └── public/
 │       ├── index.html      # トップページ
 │       ├── landing.html    # ランディングページ
 │       └── checkout.html   # チェックアウト
 │
-├── site-c/                 # Site C (localhost:3003) - Cross-Domain DISABLED
+├── site-c/                 # Site C (site-c.local:3003) - Cross-Domain DISABLED
 │   ├── server.js           # HTTPサーバー
 │   └── public/
 │       ├── index.html      # トップページ（比較表示あり）
@@ -282,7 +330,7 @@ Site Cへのリンクにはこれらのパラメータは付与されません�
 Site B のランディングページに UTM パラメータ付きでアクセス:
 
 ```
-http://localhost:3002/landing.html?utm_source=test&utm_medium=email&utm_campaign=demo
+http://site-b.local:3002/landing.html?utm_source=test&utm_medium=email&utm_campaign=demo
 ```
 
 ### シナリオ5: クロスドメイン有効/無効の比較

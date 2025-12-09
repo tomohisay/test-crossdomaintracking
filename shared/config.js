@@ -60,19 +60,19 @@
 
     sites: {
       'Site A': {
-        domain: 'localhost:3001',
+        domain: 'site-a.local:3001',
         crossDomainEnabled: true,
-        linkInternalFilters: 'localhost:3001'
+        linkInternalFilters: 'site-a.local:3001'
       },
       'Site B': {
-        domain: 'localhost:3002',
+        domain: 'site-b.local:3002',
         crossDomainEnabled: true,
-        linkInternalFilters: 'localhost:3002'
+        linkInternalFilters: 'site-b.local:3002'
       },
       'Site C': {
-        domain: 'localhost:3003',
+        domain: 'site-c.local:3003',
         crossDomainEnabled: false,
-        linkInternalFilters: 'localhost:3003'
+        linkInternalFilters: 'site-c.local:3003'
       }
     },
 
@@ -85,9 +85,9 @@
      * Site A と Site B 間でクロスドメイントラッキングを有効化
      */
     crossDomainDomains: [
-      'localhost:3001',
-      'localhost:3002'
-      // Site C (localhost:3003) は含めない
+      'site-a.local:3001',
+      'site-b.local:3002'
+      // Site C (site-c.local:3003) は含めない
     ],
 
     /**
